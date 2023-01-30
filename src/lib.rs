@@ -98,6 +98,30 @@ impl<T> From<ChonkRemainder<T>> for VecDeque<T> {
     }
 }
 
+impl<T> From<Chonk<T>> for ChonkRemainder<T> {
+    fn from(value: Chonk<T>) -> Self {
+        Self {
+            data: match value.data.len() {
+                0 => None,
+                _ => Some(value.data),
+            },
+        }
+    }
+}
+
+impl<T> From<ChonkRemainder<T>> for Chonk<T> {
+    fn from(value: ChonkRemainder<T>) -> Self {
+        let data = match value.data {
+            Some(data) => data,
+            None => VecDeque::new(),
+        };
+        Self {
+            max_size: data.len(),
+            data,
+        }
+    }
+}
+
 impl<T> Chonk<T> {
     /// Get a new self. Takes a usize for constraining the maximum size of the chonk.
     pub fn new(max_size: usize) -> Self {
@@ -163,13 +187,14 @@ impl<T> Chonk<T> {
         self.curtail()
     }
 
-    pub fn dump_to_arr(mut self, arr: &mut [T]) {
+    pub fn dump_to_arr(mut self, arr: &mut [T]) -> Self {
         for p in arr {
             match self.data.pop_front() {
                 Some(data) => *p = data,
                 None => {}
             }
         }
+        self
     }
 
     pub fn export_to_arr(&self, arr: &mut [T])
@@ -258,6 +283,15 @@ impl<T> From<Vec<T>> for Chonk<T> {
     }
 }
 
+impl<T> From<Vec<T>> for ChonkRemainder<T> {
+    fn from(value: Vec<T>) -> Self {
+        let value_len = value.len();
+        Self {
+            data: Some(VecDeque::from(value)),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -279,7 +313,7 @@ mod tests {
 
         assert_eq!(
             chonk,
-            ChonkRemainder::from(VecDeque::from(vec![0, 10, 20, 30, 40, 50, 0, 1, 2, 3]))
+            ChonkRemainder::<i32>::from(vec![0i32, 10, 20, 30, 40, 50, 0, 1, 2, 3])
         );
         assert_eq!(
             ploop_excess,
