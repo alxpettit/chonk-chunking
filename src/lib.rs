@@ -77,51 +77,6 @@ impl<T> ChonkRemainder<T> {
     }
 }
 
-impl<T> From<Option<VecDeque<T>>> for ChonkRemainder<T> {
-    fn from(value: Option<VecDeque<T>>) -> Self {
-        Self { data: value }
-    }
-}
-
-impl<T> From<VecDeque<T>> for ChonkRemainder<T> {
-    fn from(value: VecDeque<T>) -> Self {
-        Self { data: Some(value) }
-    }
-}
-
-impl<T> From<ChonkRemainder<T>> for VecDeque<T> {
-    fn from(value: ChonkRemainder<T>) -> Self {
-        match value.data {
-            Some(data) => data,
-            None => VecDeque::<T>::new(),
-        }
-    }
-}
-
-impl<T> From<Chonk<T>> for ChonkRemainder<T> {
-    fn from(value: Chonk<T>) -> Self {
-        Self {
-            data: match value.data.len() {
-                0 => None,
-                _ => Some(value.data),
-            },
-        }
-    }
-}
-
-impl<T> From<ChonkRemainder<T>> for Chonk<T> {
-    fn from(value: ChonkRemainder<T>) -> Self {
-        let data = match value.data {
-            Some(data) => data,
-            None => VecDeque::new(),
-        };
-        Self {
-            max_size: data.len(),
-            data,
-        }
-    }
-}
-
 impl<T> Chonk<T> {
     /// Get a new self. Takes a usize for constraining the maximum size of the chonk.
     pub fn new(max_size: usize) -> Self {
@@ -285,9 +240,53 @@ impl<T> From<Vec<T>> for Chonk<T> {
 
 impl<T> From<Vec<T>> for ChonkRemainder<T> {
     fn from(value: Vec<T>) -> Self {
-        let value_len = value.len();
         Self {
             data: Some(VecDeque::from(value)),
+        }
+    }
+}
+
+impl<T> From<Option<VecDeque<T>>> for ChonkRemainder<T> {
+    fn from(value: Option<VecDeque<T>>) -> Self {
+        Self { data: value }
+    }
+}
+
+impl<T> From<VecDeque<T>> for ChonkRemainder<T> {
+    fn from(value: VecDeque<T>) -> Self {
+        Self { data: Some(value) }
+    }
+}
+
+impl<T> From<ChonkRemainder<T>> for VecDeque<T> {
+    fn from(value: ChonkRemainder<T>) -> Self {
+        match value.data {
+            Some(data) => data,
+            None => VecDeque::<T>::new(),
+        }
+    }
+}
+
+impl<T> From<Chonk<T>> for ChonkRemainder<T> {
+    fn from(value: Chonk<T>) -> Self {
+        Self {
+            data: match value.data.len() {
+                0 => None,
+                _ => Some(value.data),
+            },
+        }
+    }
+}
+
+impl<T> From<ChonkRemainder<T>> for Chonk<T> {
+    fn from(value: ChonkRemainder<T>) -> Self {
+        let data = match value.data {
+            Some(data) => data,
+            None => VecDeque::new(),
+        };
+        Self {
+            max_size: data.len(),
+            data,
         }
     }
 }
@@ -333,7 +332,7 @@ mod tests {
 
     #[test]
     fn unbasic_chonk() {
-        let mut chonk = Chonk::<i32>::from(vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+        let chonk = Chonk::from(vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
         //dbg!(&slurp_excess);
         dbg!(&chonk);
         let mut arr_1 = [0i32; 3];
