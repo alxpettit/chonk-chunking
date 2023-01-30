@@ -37,7 +37,7 @@ where
     T: PartialEq,
 {
     fn eq(&self, other: &ChonkRemainder<T>) -> bool {
-        Some(&self.data) == other.data.as_ref()
+        self.data == other.data
     }
 }
 
@@ -54,33 +54,30 @@ where
 
 #[derive(Debug, Default, PartialEq, Eq)]
 pub struct ChonkRemainder<T> {
-    data: Option<VecDeque<T>>,
+    data: VecDeque<T>,
 }
 
 impl<T> ChonkRemainder<T> {
     pub fn new() -> Self {
-        Self { data: None }
+        Self {
+            data: VecDeque::<T>::new(),
+        }
     }
 
     fn has_none(&self) -> bool {
-        return self.data.is_none();
+        self.data.len() == 0
     }
 
     fn has_some(&self) -> bool {
-        return self.data.is_some();
+        self.data.len() != 0
     }
 
     fn extract_vecdeque(mut self) -> VecDeque<T> {
-        match self.data {
-            Some(data) => data,
-            None => VecDeque::<T>::new(),
-        }
+        self.data
     }
 
     fn iter(&self) -> Iter<T> {
-        match self.data {
-            Some(data) => data.iter(),
-        }
+        self.data.iter()
     }
 }
 
@@ -132,7 +129,7 @@ impl<T> Chonk<T> {
     /// It can only be done by one who has achieved true self ownership, as a mere reference is insufficient.
     pub fn ploop(mut self, other: ChonkRemainder<T>) -> (Self, ChonkRemainder<T>) {
         let mut old_data = self.data;
-        self.data = other.data.unwrap_or_default();
+        self.data = other.data;
         let curtailed = self.slurp(&mut old_data);
 
         (self, curtailed)
@@ -176,7 +173,7 @@ impl<T> Chonk<T> {
         if self.data.len() > self.max_size {
             ChonkRemainder::<T>::from(self.data.split_off(self.max_size))
         } else {
-            ChonkRemainder::<T>::from(None)
+            ChonkRemainder::<T>::from(VecDeque::new())
         }
     }
 
@@ -248,52 +245,40 @@ impl<T> From<Vec<T>> for Chonk<T> {
 impl<T> From<Vec<T>> for ChonkRemainder<T> {
     fn from(value: Vec<T>) -> Self {
         Self {
-            data: Some(VecDeque::from(value)),
+            data: VecDeque::from(value),
         }
     }
 }
-
-impl<T> From<Option<VecDeque<T>>> for ChonkRemainder<T> {
-    fn from(value: Option<VecDeque<T>>) -> Self {
-        Self { data: value }
-    }
-}
+//
+// impl<T> From<Option<VecDeque<T>>> for ChonkRemainder<T> {
+//     fn from(value: Option<VecDeque<T>>) -> Self {
+//         Self { data: value }
+//     }
+// }
 
 impl<T> From<VecDeque<T>> for ChonkRemainder<T> {
     fn from(value: VecDeque<T>) -> Self {
-        Self { data: Some(value) }
+        Self { data: value }
     }
 }
 
 impl<T> From<ChonkRemainder<T>> for VecDeque<T> {
     fn from(value: ChonkRemainder<T>) -> Self {
-        match value.data {
-            Some(data) => data,
-            None => VecDeque::<T>::new(),
-        }
+        value.data
     }
 }
 
 impl<T> From<Chonk<T>> for ChonkRemainder<T> {
     fn from(value: Chonk<T>) -> Self {
-        Self {
-            data: match value.data.len() {
-                0 => None,
-                _ => Some(value.data),
-            },
-        }
+        Self { data: value.data }
     }
 }
 
 impl<T> From<ChonkRemainder<T>> for Chonk<T> {
     fn from(value: ChonkRemainder<T>) -> Self {
-        let data = match value.data {
-            Some(data) => data,
-            None => VecDeque::new(),
-        };
         Self {
-            max_size: data.len(),
-            data,
+            max_size: value.data.len(),
+            data: value.data,
         }
     }
 }
