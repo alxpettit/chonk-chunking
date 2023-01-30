@@ -313,7 +313,7 @@ mod tests {
 
         assert_eq!(
             chonk,
-            ChonkRemainder::<i32>::from(vec![0i32, 10, 20, 30, 40, 50, 0, 1, 2, 3])
+            ChonkRemainder::from(vec![0, 10, 20, 30, 40, 50, 0, 1, 2, 3])
         );
         assert_eq!(
             ploop_excess,
