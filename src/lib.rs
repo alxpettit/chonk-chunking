@@ -131,7 +131,7 @@ impl<T> Chonk<T> {
         (self, curtailed)
     }
 
-    pub fn import(&mut self, other: &mut ChonkRemainder<T>) -> ChonkRemainder<T>
+    pub fn clone_from(&mut self, other: &mut ChonkRemainder<T>) -> ChonkRemainder<T>
     where
         T: Clone,
     {
@@ -152,11 +152,11 @@ impl<T> Chonk<T> {
         self
     }
 
-    pub fn export_to_arr(&self, arr: &mut [T])
+    pub fn clone_to(&self, arr: &mut core::slice::IterMut<T>)
     where
         T: Clone,
     {
-        for (i, p) in arr.iter_mut().enumerate() {
+        for (i, p) in arr.enumerate() {
             match self.data.get(i) {
                 Some(data) => *p = data.clone(),
                 None => {}
@@ -336,7 +336,7 @@ mod tests {
         //dbg!(&slurp_excess);
         dbg!(&chonk);
         let mut arr_1 = [0i32; 3];
-        chonk.export_to_arr(&mut arr_1);
+        chonk.clone_to(&mut arr_1);
         assert_eq!(arr_1, [0, 1, 2]);
     }
 }
