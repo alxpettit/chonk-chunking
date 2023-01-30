@@ -57,7 +57,7 @@ pub struct ChonkRemainder<T> {
 }
 
 impl<T> ChonkRemainder<T> {
-    pub(crate) fn new() -> Self {
+    pub fn new() -> Self {
         Self { data: None }
     }
 
@@ -163,14 +163,25 @@ impl<T> Chonk<T> {
         self.curtail()
     }
 
-    pub fn export_to_arr(mut self, arr: &mut [T]) -> Result<(), ()> {
+    pub fn dump_to_arr(mut self, arr: &mut [T]) {
         for p in arr {
             match self.data.pop_front() {
                 Some(data) => *p = data,
                 None => {}
             }
         }
-        todo!()
+    }
+
+    pub fn export_to_arr(&self, arr: &mut [T])
+    where
+        T: Clone,
+    {
+        for (i, p) in arr.iter_mut().enumerate() {
+            match self.data.get(i) {
+                Some(data) => *p = data.clone(),
+                None => {}
+            }
+        }
     }
 
     /// Splits the end off according to the maximum size of the chonk
@@ -237,6 +248,16 @@ impl<T> From<VecDeque<T>> for Chonk<T> {
     }
 }
 
+impl<T> From<Vec<T>> for Chonk<T> {
+    fn from(value: Vec<T>) -> Self {
+        let value_len = value.len();
+        Self {
+            data: VecDeque::from(value),
+            max_size: value_len,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -274,5 +295,15 @@ mod tests {
         for x in chonk.into_iter() {
             dbg!(x);
         }
+    }
+
+    #[test]
+    fn unbasic_chonk() {
+        let mut chonk = Chonk::<i32>::from(vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+        //dbg!(&slurp_excess);
+        dbg!(&chonk);
+        let mut arr_1 = [0i32; 3];
+        chonk.export_to_arr(&mut arr_1);
+        assert_eq!(arr_1, [0, 1, 2]);
     }
 }
