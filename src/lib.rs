@@ -36,7 +36,7 @@ where
     T: PartialEq,
 {
     fn eq(&self, other: &ChonkRemainder<T>) -> bool {
-        &self.data == other.data.as_ref().unwrap()
+        Some(&self.data) == other.data.as_ref()
     }
 }
 
@@ -152,9 +152,23 @@ impl<T> Chonk<T> {
         (self, curtailed)
     }
 
-    pub fn pop_front_into(mut self, arr: &mut [T]) -> Result<(), ()> {
+    pub fn import(&mut self, other: &mut ChonkRemainder<T>) -> ChonkRemainder<T>
+    where
+        T: Clone,
+    {
+        for other_x in &mut other.data.as_mut().unwrap().iter_mut() {
+            self.data.push_back(other_x.clone());
+        }
+
+        self.curtail()
+    }
+
+    pub fn export_to_arr(mut self, arr: &mut [T]) -> Result<(), ()> {
         for p in arr {
-            self.data.pop_back();
+            match self.data.pop_front() {
+                Some(data) => *p = data,
+                None => {}
+            }
         }
         todo!()
     }
