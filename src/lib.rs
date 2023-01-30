@@ -4,6 +4,7 @@
 use futures::Stream;
 use futures::StreamExt;
 use itertools::{repeat_n, Itertools};
+use std::collections::vec_deque::Iter;
 use std::collections::VecDeque;
 
 // Remember: the perfect is the enemy of the good
@@ -75,6 +76,12 @@ impl<T> ChonkRemainder<T> {
             None => VecDeque::<T>::new(),
         }
     }
+
+    fn iter(&self) -> Iter<T> {
+        match self.data {
+            Some(data) => data.iter(),
+        }
+    }
 }
 
 impl<T> Chonk<T> {
@@ -131,11 +138,11 @@ impl<T> Chonk<T> {
         (self, curtailed)
     }
 
-    pub fn clone_from(&mut self, other: &mut ChonkRemainder<T>) -> ChonkRemainder<T>
+    pub fn clone_from(&mut self, other: &mut core::slice::Iter<T>) -> ChonkRemainder<T>
     where
         T: Clone,
     {
-        for other_x in &mut other.data.as_mut().unwrap().iter_mut() {
+        for other_x in other {
             self.data.push_back(other_x.clone());
         }
 
@@ -336,7 +343,7 @@ mod tests {
         //dbg!(&slurp_excess);
         dbg!(&chonk);
         let mut arr_1 = [0i32; 3];
-        chonk.clone_to(&mut arr_1);
+        chonk.clone_to(&mut arr_1.iter_mut());
         assert_eq!(arr_1, [0, 1, 2]);
     }
 }
